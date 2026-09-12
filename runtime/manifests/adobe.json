@@ -1,0 +1,11 @@
+{
+  "schema_version": "1",
+  "adapter_id": "adobe",
+  "version": "0.1.0",
+  "dcc_mcp_core": ">=0.19.13,<1.0.0",
+  "python_abi": "cp311-win_amd64",
+  "capabilities": ["documents", "layers", "timeline", "media", "export"],
+  "wheel_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "signature": null,
+  "host_mode": "external"
+}

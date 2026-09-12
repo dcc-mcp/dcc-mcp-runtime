@@ -1,0 +1,12 @@
+{
+  "schema_version": "1",
+  "runtime_id": "dcc-mcp-external",
+  "version": "0.1.0",
+  "python_version": "3.11",
+  "python_abi": "cp311-win_amd64",
+  "platform": "windows-x86_64",
+  "dcc_mcp_core": ">=0.19.13,<1.0.0",
+  "runtime_sha256": null,
+  "signature": null,
+  "adapters": []
+}

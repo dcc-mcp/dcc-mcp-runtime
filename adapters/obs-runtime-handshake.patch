@@ -1,0 +1,12 @@
+diff --git a/src/dcc_mcp_obs/server.py b/src/dcc_mcp_obs/server.py
+--- a/src/dcc_mcp_obs/server.py
++++ b/src/dcc_mcp_obs/server.py
+@@
+ from dcc_mcp_core.server_base import DccServerBase
++from dcc_mcp_runtime.bootstrap import require_adapter
+@@
+ def start_server(*, port: int | None = None, host_pid: int | None = None) -> ObsMcpServer:
+     global _server
+     if _server is None or not _server.is_running:
++        require_adapter("obs")
+         if _server is not None:
