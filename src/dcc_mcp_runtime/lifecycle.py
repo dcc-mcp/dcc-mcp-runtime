@@ -26,8 +26,13 @@ class InstallResult:
 
 
 def plan_install(
-    *, operation_id: str, runtime_id: str, target_version: str, package_path: str,
-    expected_sha256: str, previous_version: str | None = None,
+    *,
+    operation_id: str,
+    runtime_id: str,
+    target_version: str,
+    package_path: str,
+    expected_sha256: str,
+    previous_version: str | None = None,
 ) -> InstallPlan:
     """Return an exact plan; execution belongs to a host-owned allow-list."""
     if not operation_id or not runtime_id or not target_version or not package_path:
@@ -35,6 +40,12 @@ def plan_install(
     if len(expected_sha256) != 64:
         raise ValueError("expected_sha256 must be a 64-character SHA-256 hex digest")
     return InstallPlan(
-        operation_id, runtime_id, target_version, package_path, expected_sha256,
-        previous_version, True, previous_version,
+        operation_id,
+        runtime_id,
+        target_version,
+        package_path,
+        expected_sha256,
+        previous_version,
+        True,
+        previous_version,
     )
