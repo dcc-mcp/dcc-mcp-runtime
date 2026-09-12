@@ -1,0 +1,17 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "python",
+      "package-name": "dcc-mcp-runtime",
+      "changelog-path": "CHANGELOG.md",
+      "include-component-in-tag": false,
+      "extra-files": [
+        {
+          "type": "toml",
+          "path": "pyproject.toml",
+          "jsonpath": "$.project.version"
+        }
+      ]
+    }
+  }
+}

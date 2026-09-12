@@ -30,4 +30,9 @@ executes arbitrary shell/Python: an operator must approve an exact plan and a
 host-owned installer performs the allow-listed operation. A failed health/hash
 verification leaves the previous runtime active for rollback.
 
+Releases use [release-please](https://github.com/googleapis/release-please):
+Conventional Commits on `main` create a release PR; merging it creates the tag
+and release, then the same workflow builds and uploads the wheel, sdist, and
+runtime/adapter manifests to that exact release tag.
+
 See [migration guides](docs/migration/) and [ADR 0001](docs/ADR-0001-shared-runtime.md).
