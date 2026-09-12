@@ -5,7 +5,9 @@ from dcc_mcp_runtime.bootstrap import require_adapter
 
 def main() -> None:
     require_adapter("obs")
-    from dcc_mcp_obs._standalone_entry import main as obs_main
+    # The shared runtime owns Python and transport; OBS owns its native plugin
+    # and WebSocket bridge. Avoid the legacy self-contained wrapper.
+    from dcc_mcp_obs.server import main as obs_main
 
     obs_main()
 
