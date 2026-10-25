@@ -108,6 +108,18 @@ def prepare_launch(
         raise ValueError("interpreter or isolated site-packages missing")
     adapter_id = lock["adapter_id"]
     module = lock["entry_module"]
+    entry_args = lock.get("entry_args", [])
+    if not isinstance(entry_args, list) or any(
+        not isinstance(arg, str) or "\x00" in arg for arg in entry_args
+    ):
+        raise ValueError("entry_args must be a list of strings without NUL")
+    # Core expands these tokens even inside absolute paths; preserve the pinned argv.
+    if any(
+        token in value
+        for token in ("{executable}", "{project}", "{dcc_type}", "{version}")
+        for value in (str(root), str(interpreter), str(site), *entry_args)
+    ):
+        raise ValueError("Core launch placeholders are not allowed in pinned paths/arguments")
     if not re.fullmatch(r"[A-Za-z0-9_-]+", adapter_id):
         raise ValueError("invalid adapter id")
     if not re.fullmatch(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*", module):
@@ -145,12 +157,22 @@ def prepare_launch(
     handshake = negotiate(runtime, adapter, core_version=versions["dcc-mcp-core"])
     if not handshake.accepted:
         raise ValueError(handshake.reason)
+    argv = [str(interpreter), "-I", "-S", "-B", "-c", _LAUNCH, str(site), module, *entry_args]
     return {
-        "argv": [str(interpreter), "-I", "-S", "-B", "-c", _LAUNCH, str(site), module],
+        "argv": argv,
         "cwd": str(root),
         "lock_sha256": expected_lock_sha256,
         "probe": report,
         "adapter_id": adapter_id,
         "requires_confirmation": True,
         "native_acceptance": "not_run",
+        "core_launch_plan": {
+            "schema_version": 1,
+            "dcc_type": adapter_id,
+            "executable": str(interpreter),
+            "argv": argv,
+            "version": adapter.version,
+            "project_markers": [],
+            "cwd": str(root),
+        },
     }

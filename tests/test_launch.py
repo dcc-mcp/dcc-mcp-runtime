@@ -11,7 +11,7 @@ import pytest
 
 from dcc_mcp_runtime.cli import main
 from dcc_mcp_runtime.handshake import negotiate
-from dcc_mcp_runtime.launch import _PROBE, prepare_launch
+from dcc_mcp_runtime.launch import _LAUNCH, _PROBE, prepare_launch
 from test_runtime import adapter, runtime
 
 
@@ -72,6 +72,12 @@ def test_launch_plan_uses_pinned_interpreter_and_bounded_isolated_probe(tmp_path
     assert plan["requires_confirmation"]
     assert plan["native_acceptance"] == "not_run"
     assert plan["argv"][-1] == "dcc_mcp_figma"
+    core = plan["core_launch_plan"]
+    assert core["schema_version"] == 1
+    assert core["dcc_type"] == "figma"
+    assert core["executable"] == core["argv"][0] == str(root / "python")
+    assert core["argv"] == plan["argv"]
+    assert core["project_markers"] == []
 
 
 @pytest.mark.parametrize("fault", ["digest", "tamper", "extra", "traversal", "missing"])
@@ -175,3 +181,45 @@ def test_cli_emits_plan_without_starting_adapter(monkeypatch, capsys):
         assert main() == 0
     prepare.assert_called_once_with("staged-root", "lock.json", "a" * 64)
     assert json.loads(capsys.readouterr().out)["requires_confirmation"]
+
+
+@pytest.mark.parametrize("args", [["serve", "--bridge-port", "19061"], []])
+def test_pinned_entry_arguments_survive_launch_planning(tmp_path, args):
+    """Figma requires serve; argv must preserve exact tokens without shell interpretation."""
+    root, lock, _, report = bundle(tmp_path)
+    data = json.loads(lock.read_text())
+    data["entry_args"] = args
+    lock.write_text(json.dumps(data))
+    digest = hashlib.sha256(lock.read_bytes()).hexdigest()
+    with patch("dcc_mcp_runtime.launch.subprocess.run") as run:
+        run.return_value.stdout = json.dumps(report)
+        plan = prepare_launch(root, lock, digest)
+    assert plan["argv"][8:] == args
+
+
+@pytest.mark.parametrize("args", ["serve", [None], ["serve\x00"], ["{project}"]])
+def test_invalid_entry_arguments_stop_before_probe(tmp_path, args):
+    """Malformed argv cannot reach process creation."""
+    root, lock, _, _ = bundle(tmp_path)
+    data = json.loads(lock.read_text())
+    data["entry_args"] = args
+    lock.write_text(json.dumps(data))
+    digest = hashlib.sha256(lock.read_bytes()).hexdigest()
+    with patch("dcc_mcp_runtime.launch.subprocess.run") as run:
+        with pytest.raises(ValueError):
+            prepare_launch(root, lock, digest)
+        run.assert_not_called()
+
+
+def test_launch_bootstrap_preserves_module_arguments_without_shell(tmp_path):
+    """Run an inert stand-in CLI, never the adapter, to verify runpy argv handling."""
+    (tmp_path / "inert_cli.py").write_text("import sys,json; print(json.dumps(sys.argv[1:]))")
+    args = ["serve", "--bridge-port", "19061", "literal;echo no-shell"]
+    result = subprocess.run(
+        [sys.executable, "-I", "-S", "-B", "-c", _LAUNCH, str(tmp_path), "inert_cli", *args],
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=10,
+    )
+    assert json.loads(result.stdout) == args

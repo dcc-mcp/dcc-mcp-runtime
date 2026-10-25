@@ -29,6 +29,7 @@ through the trust service.
   "adapter_id": "figma",
   "adapter_distribution": "dcc-mcp-figma",
   "entry_module": "dcc_mcp_figma",
+  "entry_args": ["serve", "--bridge-port", "19061"],
   "files": {
     "python.exe": "<actual interpreter digest>",
     "runtime/manifest.json": "<actual runtime manifest digest>",
@@ -42,6 +43,12 @@ Figma manifest. All payload files must be added. Runtime `python_version` is the
 exact observed three-component version; ABI is `cp<major><minor>-` followed by
 `sysconfig.get_platform()` with hyphens/dots replaced by underscores. The
 interpreter's `sys.prefix` must resolve to the bundle root.
+
+`entry_args` is an optional exact string array, covered by the trusted lock digest.
+It defaults to no arguments for existing locks. Figma 0.1.0 requires `serve` to
+start its explicit service; no token value belongs in this lock or argv. The
+existing operator-provided token environment and Plugin API route are unchanged.
+Preparing a plan does not invoke `serve`, create a token or grant pairing access.
 
 ## Prepare and consume
 
@@ -67,6 +74,16 @@ host-owned launcher. No shell or PATH interpreter lookup is used. Errors, nonzer
 exit, timeout, malformed output and mismatches produce no plan. Exceptions remain
 visible to callers (the CLI exits nonzero).
 
+`core_launch_plan` is the existing Core schema-v1 document, not a second launcher:
+`schema_version`, `dcc_type`, absolute `executable`, exact `argv`, adapter `version`,
+empty `project_markers` and `cwd`. The operator may separately publish this nested
+document through Core's explicit `--launch-plan` route after reviewing the exact
+operation. This API does not write project receipts or registry configuration,
+invoke `start-instance`, bypass its `--yes` gate, or claim registration/readiness.
+Reserved Core expansion tokens in pinned paths/arguments are rejected so Core
+cannot silently reinterpret an approved path or argument. Contract source:
+[Core launch plan v1](https://github.com/dcc-mcp/dcc-mcp-core/blob/47787b991b3441b62c6a037013668d306b9396e7/docs/guide/adapter-launch-plan-contract.md).
+
 The host must keep staging immutable during verification/execution, reverify on
 reuse and obtain confirmation for the exact launch. A plan is not a reusable
 authorization receipt. No global environment variables or active Runtime pointer
@@ -80,6 +97,22 @@ native libraries and subprocess behavior still require host-owned policy.
 - Host-owned installation/activation/rollback and write-protected staging.
 - Actual staged-interpreter probe on each platform, then approved adapter launch.
 - Figma Plugin API pairing and native read/write/save/reopen/export acceptance.
+
+### Figma source/package evidence
+
+The reviewed Figma source revision is
+[`b7d1dc108bd0f334754aa00af8ebbd6b6e65af81`](https://github.com/dcc-mcp/dcc-mcp-figma/tree/b7d1dc108bd0f334754aa00af8ebbd6b6e65af81).
+Its package declares 0.1.0 and `dcc-mcp-core>=0.20.44,<0.21`; the existing
+`cp311-win_amd64` route remains a target, not an interpreter acceptance receipt.
+One available local 61,707-byte wheel had SHA-256
+`9a1337f6cbd3ff030ee115092b00e20b8734a38eea90fcc7c29bcbc1d388880a`.
+Its `binding.py`, `blueprint.py`, `http_bridge.py` and `__main__.py` differed from
+the canonical Git blobs at that revision (not just line endings). Therefore its
+digest is **not** published as the current Figma adapter manifest or a trusted
+payload. This finding applies to that local candidate, not every CI-built wheel.
+The Figma owner must provide a source-matched wheel and provenance before a real
+`runtime/manifests/figma.json` and complete bundle lock can be approved. No existing
+wheel was overwritten, and no placeholder wheel hash was installed.
 
 Repository inspection found only README clarification PR #4 open at the starting
 main revision `3a54f666c4283bab160dbab3ac90630c9ed39087`; no active implementation
