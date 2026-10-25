@@ -1,0 +1,18 @@
+{
+  "adapter_id": "figma",
+  "version": "0.1.0",
+  "dcc_mcp_core": ">=0.20.44,<0.21",
+  "python_abi": "cp311-win_amd64",
+  "capabilities": [
+    "document.read",
+    "node.read",
+    "frame.create",
+    "frame.update",
+    "node.export",
+    "design.blueprint.apply",
+    "design.blueprint.read"
+  ],
+  "wheel_sha256": "611e5afca59f861b71ef6ff41d19ce315be05fa813311fdc40f3d3efc97c5a39",
+  "signature": null,
+  "host_mode": "external"
+}

@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
+from packaging.version import InvalidVersion, Version
+
 from .manifest import AdapterManifest, RuntimeManifest
 
 
@@ -26,13 +29,25 @@ class HandshakeResult:
     handshake: CapabilityHandshake | None = None
 
 
-def negotiate(runtime: RuntimeManifest, adapter: AdapterManifest) -> HandshakeResult:
+def negotiate(
+    runtime: RuntimeManifest, adapter: AdapterManifest, *, core_version: str | None = None
+) -> HandshakeResult:
     if adapter.host_mode == "embedded":
         return HandshakeResult(False, "embedded_adapter_requires_host_runtime")
     if runtime.python_abi != adapter.python_abi:
         return HandshakeResult(False, "python_abi_mismatch")
-    if runtime.dcc_mcp_core != adapter.dcc_mcp_core:
-        return HandshakeResult(False, "dcc_mcp_core_mismatch")
+    if core_version is None:
+        if runtime.dcc_mcp_core != adapter.dcc_mcp_core:
+            return HandshakeResult(False, "dcc_mcp_core_mismatch")
+    else:
+        try:
+            actual = Version(core_version)
+            if any(
+                actual not in SpecifierSet(s) for s in (runtime.dcc_mcp_core, adapter.dcc_mcp_core)
+            ):
+                return HandshakeResult(False, "dcc_mcp_core_mismatch")
+        except (InvalidSpecifier, InvalidVersion):
+            return HandshakeResult(False, "invalid_dcc_mcp_core_version")
     capabilities = tuple(sorted(set(adapter.capabilities)))
     # The runtime does not sign/authorise capabilities; it carries a stable
     # handshake value for the gateway to compare with its catalog.
