@@ -29,7 +29,7 @@ through the trust service.
   "adapter_id": "figma",
   "adapter_distribution": "dcc-mcp-figma",
   "entry_module": "dcc_mcp_figma",
-  "entry_args": ["serve", "--bridge-port", "19061"],
+  "entry_args": ["serve", "--bridge-port", "19061", "--mcp-port", "0", "--token-env", "DCC_MCP_FIGMA_TOKEN", "--request-timeout", "120"],
   "files": {
     "python.exe": "<actual interpreter digest>",
     "runtime/manifest.json": "<actual runtime manifest digest>",
@@ -110,9 +110,27 @@ Its `binding.py`, `blueprint.py`, `http_bridge.py` and `__main__.py` differed fr
 the canonical Git blobs at that revision (not just line endings). Therefore its
 digest is **not** published as the current Figma adapter manifest or a trusted
 payload. This finding applies to that local candidate, not every CI-built wheel.
-The Figma owner must provide a source-matched wheel and provenance before a real
-`runtime/manifests/figma.json` and complete bundle lock can be approved. No existing
-wheel was overwritten, and no placeholder wheel hash was installed.
+No existing wheel was overwritten by this Runtime task, and no placeholder wheel
+hash was installed.
+
+The owner subsequently supplied a canonical 63,920-byte wheel with SHA-256
+`611e5afca59f861b71ef6ff41d19ce315be05fa813311fdc40f3d3efc97c5a39`.
+Runtime independently compared all 17 package Python/plugin files against the
+raw Git blobs at that source revision and verified all 21 hashed RECORD entries.
+The [adapter candidate](examples/figma-adapter.cp311-win_amd64.json) pins those
+actual bytes, seven declared capabilities and the unchanged Core requirement.
+It is kept under documentation, not in the shipped `runtime/manifests` directory:
+the wheel is pure Python (`py3-none-any`, Requires-Python >=3.7), while cp311 Windows
+is still an unobserved payload target. Its null signature does not establish
+trusted authority. Neither the wheel nor candidate is a complete Runtime lock.
+No wheel was imported, extracted into an environment or executed for this check.
+
+Production dependency remains Core `>=0.20.44,<0.21`. The optional trial client
+uses MCP `>=1.27,<2` on Python >=3.10; pytest and hatchling are not production
+requirements. A complete, independently approved CPython/Core/Runtime/dependency
+inventory and actual staged-interpreter probe are still required before placing
+an ABI-bound Figma manifest in a managed Runtime. No Runtime version is inferred
+from the old example manifest's 0.1.0 value.
 
 Repository inspection found only README clarification PR #4 open at the starting
 main revision `3a54f666c4283bab160dbab3ac90630c9ed39087`; no active implementation
