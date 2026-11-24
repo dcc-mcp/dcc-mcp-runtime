@@ -36,3 +36,6 @@ and release, then the same workflow builds and uploads the wheel, sdist, and
 runtime/adapter manifests to that exact release tag.
 
 See [migration guides](docs/migration/) and [ADR 0001](docs/ADR-0001-shared-runtime.md).
+
+For verification and isolated launch planning of an already staged, operator-trusted
+bundle, see [the staged launch contract](docs/STAGED-LAUNCH.md).

@@ -1,6 +1,7 @@
 """Shared runtime contracts for external DCC-MCP adapters."""
 
 from .handshake import CapabilityHandshake, HandshakeResult, negotiate
+from .launch import prepare_launch
 from .lifecycle import InstallPlan, InstallResult, plan_install
 from .manifest import AdapterManifest, RuntimeManifest, load_manifest
 
@@ -14,4 +15,5 @@ __all__ = [
     "load_manifest",
     "negotiate",
     "plan_install",
+    "prepare_launch",
 ]
