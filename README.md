@@ -1,9 +1,20 @@
 # dcc-mcp-runtime
 
-Shared Python runtime for **external** DCC-MCP adapters (Adobe, CapCut and OBS).
-The runtime is a versioned, side-by-side install containing CPython, `dcc-mcp-core`
-and adapter wheels under `lib/site-packages`. Development still uses `uv`/wheels;
-PyOxidizer is the reproducible distribution path.
+Shared runtime contract and bootstrap tooling for **external** DCC-MCP adapters
+(Adobe, CapCut and OBS). The published Python package provides manifest validation,
+runtime/adapter compatibility negotiation, and typed installation/upgrade plans.
+
+The side-by-side runtime design places CPython, `dcc-mcp-core` and adapter wheels
+under `lib/site-packages`. This design is separate from verified distribution
+availability. The [v0.2.0 GitHub Release](https://github.com/dcc-mcp/dcc-mcp-runtime/releases/tag/v0.2.0)
+contains a Python wheel, source archive, runtime/adapter manifests and migration
+guides; its listed assets do not include a complete bundled CPython runtime archive.
+The checked-in `runtime/manifest.json` has no runtime digest or signature and lists
+no bundled adapters, so it does not establish a usable bundled runtime.
+
+Development uses `uv`/wheels. PyOxidizer packaging configuration is present, but
+complete runtime artifacts and target-native acceptance must be verified before
+claiming an installable bundled runtime.
 
 Embedded DCC Python (Maya, Blender, Houdini, 3ds Max, etc.) is intentionally not
 injected into this runtime. Those adapters keep their host interpreter and only
